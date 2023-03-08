@@ -14,4 +14,5 @@ pip_git:
 	git push -u origin main
 	
 
-setup: initialize_git 
+setup: initialize_git
+run: pip_git
