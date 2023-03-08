@@ -18,10 +18,5 @@
     </a>
 </p>
 
-Audiomixer is a tool set up to mix audio and take new label from the user
-
-It provides us also executable file .exe util for the personne who don't yet setup their laptop to run python script
-
-If you got stuck feel free to send me mail.
-
+This project is an open source project that aims to provide communities, in particular communities from the health domain, with a set of useful databases to build an icd10 task classification.
 
