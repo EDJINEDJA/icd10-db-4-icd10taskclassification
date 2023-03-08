@@ -46,17 +46,17 @@ class Utils():
             if len(item)==0:
                 pass
             else:
-                index = item[0]
-                icd10code = item[1]
-                keys=item[2]
-                currentWord = item[3]
+                index = item[0] #Take the first item within item
+                icd10code = item[1] #Take the second item within item
+                keys=item[2] #Take the third item within item
+                currentWord = item[3] #keep the current word
                 for idx , item_ in enumerate(item[4:]):
                     if currentWord == item_:
-                       index = idx
-                shortDescription = " ".join(item[3 : 3 + int(index)+1])
-                description = " ".join(item[3 + int(index)+1 : ])
+                       index_ = idx #keep the index of the place that it found again current word
+                shortDescription = " ".join(item[3 : 3 + int(index_)+1])
+                description = " ".join(item[3 + int(index_)+1 : ])
                 
-                rows.append([index, icd10code, keys , shortDescription , description ])
+                rows.append([index, icd10code, keys , shortDescription , description ]) #filled in the rows 
 
         # Write the parsed data to a CSV file with the specified column headers
         with open(os.path.join(parser.get("outputPath","path"),'icd10cm_order_2022.csv'), 'w', newline='') as csvfile:
