@@ -111,7 +111,8 @@ class Utils():
         icd_final.to_csv(os.path.join(parser.get("outputFinalPath","path"),'icd_final.csv'))
         print("____ Export done ___")
 
-
+    def ChatGptAPi(self):
+        pass 
                 
         
 
