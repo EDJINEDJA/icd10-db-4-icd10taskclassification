@@ -155,7 +155,7 @@ class Utils():
         with open(os.path.join(parser.get("outputFinalPath","path"),'icd_datasets.csv'), mode='a', newline='') as file:
             #writer = csv.writer(file)
             # Définition des colonnes dans un objet DictWriter
-            writer = csv.DictWriter(file, fieldnames=["Index", "ICD9-CM", "Keys", "ShortDescription", "Description", "Text"])
+            writer = csv.DictWriter(file, fieldnames=["Index", "ICD10-CM" , "ICD9-CM", "Keys", "ShortDescription", "Description", "Text"])
 
             # Écriture de l'en-tête
             writer.writeheader()
@@ -169,7 +169,8 @@ class Utils():
                     text = self.ChatGptAPi(prompt)
 
                     row = {"Index" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "Index"].iloc[0],
-                    "ICD9-CM" : icd10,"ICD9-CM" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "ICD9-CM"].iloc[0],
+                    "ICD10-CM" : icd10,
+                    "ICD9-CM" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "ICD9-CM"].iloc[0],
                     "Keys" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "Keys"].iloc[0], 
                     "ShortDescription" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "ShortDescription"].iloc[0],
                     "Description" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "Description"].iloc[0],
