@@ -6,6 +6,7 @@
 import requests
 import csv
 import os
+import pandas as pd
 from configparser import ConfigParser
 
 parser = ConfigParser()
@@ -63,6 +64,61 @@ class Utils():
             writer = csv.writer(csvfile)
             writer.writerow(['index', 'icd10code', 'keys', 'shortDescription', 'description'])
             writer.writerows(rows)
+
+    def icd92icd10(self):
+        #read excel file from raw folder
+        icd9icd10 = pd.read_excel(parser.get("inputPath", "path"), sheet_name=None , usecols="A:B,C")
+        #Convert into dataframe
+        data = pd.DataFrame(icd9icd10['masterb10 - incl 3rd vic fix'], columns=["TABLETYP", "ICD10" ,"Pure Victorian Logical"])
+        #Rename columns
+        data.rename(columns={"TABLETYP" : "TABLETYPE", "ICD10" : "ICD10-CM" ,"Pure Victorian Logical" : "ICD9-CM"}, inplace= True)
+        print("Export progress ... ")
+        #Export into csv file and save in output folder
+        data.to_csv(os.path.join(parser.get("outputPath","path"),'icd9icd10.csv'))
+
+        print("____ Export done ___")
+
+    def merge(self):
+        #Load icd92icd10 csv file located in processed folder
+        correspondanceicd92icd10 = pd.read_csv(os.path.join(parser.get("outputPath","path"),'icd9icd10.csv'))
+        icd10cm_order_2022 = pd.read_csv(os.path.join(parser.get("outputPath","path"),'icd10cm_order_2022.csv'))
+        ICD9_CM = []
+   
+        for keys , values in icd10cm_order_2022["icd10code"].iteritems():
+            # supposons que le dataframe s'appelle `correspondance_df`
+            # et que les colonnes contenant les codes ICD-9 et ICD-10 s'appellent respectivement `icd9` et `icd10`
+      
+            code_icd10_recherche = values
+            try: 
+                valeur_icd9_correspondante = correspondanceicd92icd10.loc[correspondanceicd92icd10["ICD10-CM"] == str(code_icd10_recherche.strip()), "ICD9-CM"].iloc[0]
+                ICD9_CM.append(valeur_icd9_correspondante) 
+            except IndexError:
+                ICD9_CM.append('No equivalence') 
+
+        icd10cm_order_2022["icd9code"]=ICD9_CM
+
+        #Rename columns
+        icd10cm_order_2022.rename(columns={"index" : "Index","icd10code" : "ICD10-CM","keys" : "Keys","shortDescription" : "ShortDescription","description" : "Description" , "icd9code":"ICD9-CM"}, inplace= True)
+        icd_final = pd.DataFrame()
+        icd_final["Index"]=icd10cm_order_2022["Index"]
+        icd_final["ICD10-CM"]=icd10cm_order_2022["ICD10-CM"]
+        icd_final["ICD9-CM"]=icd10cm_order_2022["ICD9-CM"]
+        icd_final["Keys"]=icd10cm_order_2022["Keys"]
+        icd_final["ShortDescription"]=icd10cm_order_2022["ShortDescription"]
+        icd_final["Description"]=icd10cm_order_2022["Description"]
+        print("Export progress ... ")
+        #Export into csv file and save in output folder
+        icd_final.to_csv(os.path.join(parser.get("outputFinalPath","path"),'icd_final.csv'))
+        print("____ Export done ___")
+
+
+                
+        
+
+
+
+
+
 
 
    

@@ -12,6 +12,9 @@ pip_git:
 	git add .
 	git commit -m "commit"
 	git push -u origin main
+pull_git:
+	@echo "pulling back ..."
+	git pull origin main
 	
 
 setup: initialize_git
