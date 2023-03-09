@@ -7,17 +7,23 @@ import requests
 import csv
 import os
 import pandas as pd
+import openai
+import pprint
 from configparser import ConfigParser
+import json
 
 parser = ConfigParser()
 parser.read("./config/config.ini")
 
+with open("./secret/secret.json") as f:
+    api_key = json.load(f)
+
 
 class Utils():
 
-    def __init__(self, URL) -> None:
-        self.url = URL
-        self.response = requests.get(self.url)
+    def __init__(self) -> None:
+        pass
+        
 
     def __str__(self) -> str:
         return "Utils provides instance to scraped icd10 code is such a way that  for each code their descriptio. The output s in to csv file"
@@ -29,8 +35,11 @@ class Utils():
         pass
 
     def fields(self):
+        URL = 'https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Publications/ICD10CM/2022/icd10cm_order_2022.txt'
+        self.url = URL
+        response = requests.get(self.url)
         # Download the text file from the URL
-        text = self.response.text
+        text = response.text
 
         # Split the text file into lines and parse each line into fields
         lines = text.split('\n')
@@ -111,8 +120,62 @@ class Utils():
         icd_final.to_csv(os.path.join(parser.get("outputFinalPath","path"),'icd_final.csv'))
         print("____ Export done ___")
 
-    def ChatGptAPi(self):
-        pass 
+    @staticmethod
+    # Define function to generate response
+    def generate_response(prompt, model , temperature):
+        response = openai.ChatCompletion.create(
+            model=model,
+            messages=prompt,
+            temperature = temperature
+        )
+
+        return response
+        
+    def ChatGptAPi(self , content , temperature = 0):
+        # Set OpenAI API key
+        openai.api_key = api_key["api-keys"]
+   
+        # Set up the OpenAI model
+        model_engine = "gpt-3.5-turbo"
+        model_prompt = [{"role" : "system" ,"content" : f"{content}"
+                        }] # Change the question prompt as needed
+  
+        # Generate response using the defined function
+        response = self.generate_response(model_prompt, model_engine, temperature)
+
+        # return the response
+        return response['choices'][0]['message']['content']
+
+    def Q2text(self):
+
+        #Load icd_final.csv
+        icd_final = pd.read_csv(parser.get("outputFinalPath" , "load"))
+        # Ouverture du fichier en mode 'append' pour ajouter de nouvelles lignes
+        with open(os.path.join(parser.get("outputFinalPath","path"),'icd_datasets.csv'), mode='a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Index", "ICD10-CM","ICD9-CM", "Keys", "ShortDescription", "Description","Text"])
+
+        for keys , icd10 in icd_final["ICD10-CM"].iteritems():
+            compt = 0
+            des = icd_final.loc[icd_final["ICD10-CM"] == icd10, "ShortDescription"].iloc[0]+ "," + icd_final.loc[icd_final["ICD10-CM"] == icd10, "Description"].iloc[0]
+            prompt = f"ICD10-CM = {icd10} which has in the context of the international classification of disease codes the description:{des}. Give me a text of a patient who expresses his symptoms that he has related to this type of disease to his doctor in form discussion with his doctor."
+            while compt !=5:
+                text = self.ChatGptAPi(prompt)
+
+                row = [icd_final.loc[icd_final["ICD10-CM"] == icd10, "Index"].iloc[0],icd10,icd_final.loc[icd_final["ICD10-CM"] == icd10, "ICD9-CM"].iloc[0],
+                icd_final.loc[icd_final["ICD10-CM"] == icd10, "Keys"].iloc[0], icd_final.loc[icd_final["ICD10-CM"] == icd10, "ShortDescription"].iloc[0],
+                icd_final.loc[icd_final["ICD10-CM"] == icd10, "Description"].iloc[0], text]
+
+                # Écriture d'une nouvelle ligne dans le fichier CSV
+                writer.writerow(row)
+
+                compt = compt + 1
+            
+            
+
+
+
+
                 
         
 
