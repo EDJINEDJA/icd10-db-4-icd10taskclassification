@@ -9,6 +9,7 @@ import os
 import pandas as pd
 import openai
 import pprint
+from  tqdm import tqdm
 from configparser import ConfigParser
 import json
 
@@ -152,24 +153,33 @@ class Utils():
         icd_final = pd.read_csv(parser.get("outputFinalPath" , "load"))
         # Ouverture du fichier en mode 'append' pour ajouter de nouvelles lignes
         with open(os.path.join(parser.get("outputFinalPath","path"),'icd_datasets.csv'), mode='a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(["Index", "ICD10-CM","ICD9-CM", "Keys", "ShortDescription", "Description","Text"])
+            #writer = csv.writer(file)
+            # Définition des colonnes dans un objet DictWriter
+            writer = csv.DictWriter(file, fieldnames=["Index", "ICD9-CM", "Keys", "ShortDescription", "Description", "Text"])
 
-        for keys , icd10 in icd_final["ICD10-CM"].iteritems():
-            compt = 0
-            des = icd_final.loc[icd_final["ICD10-CM"] == icd10, "ShortDescription"].iloc[0]+ "," + icd_final.loc[icd_final["ICD10-CM"] == icd10, "Description"].iloc[0]
-            prompt = f"ICD10-CM = {icd10} which has in the context of the international classification of disease codes the description:{des}. Give me a text of a patient who expresses his symptoms that he has related to this type of disease to his doctor in form discussion with his doctor."
-            while compt !=5:
-                text = self.ChatGptAPi(prompt)
+            # Écriture de l'en-tête
+            writer.writeheader()
+            
 
-                row = [icd_final.loc[icd_final["ICD10-CM"] == icd10, "Index"].iloc[0],icd10,icd_final.loc[icd_final["ICD10-CM"] == icd10, "ICD9-CM"].iloc[0],
-                icd_final.loc[icd_final["ICD10-CM"] == icd10, "Keys"].iloc[0], icd_final.loc[icd_final["ICD10-CM"] == icd10, "ShortDescription"].iloc[0],
-                icd_final.loc[icd_final["ICD10-CM"] == icd10, "Description"].iloc[0], text]
+            for keys , icd10 in tqdm(icd_final["ICD10-CM"].iteritems()):
+                compt = 0
+                des = icd_final.loc[icd_final["ICD10-CM"] == icd10, "ShortDescription"].iloc[0]+ "," + icd_final.loc[icd_final["ICD10-CM"] == icd10, "Description"].iloc[0]
+                prompt = f"ICD10-CM = {icd10} which has in the context of the international classification of disease codes the description:{des}. Give me a text of a patient who expresses his symptoms that he has related to this type of disease to his doctor in form discussion with his doctor."
+                while compt !=5:
+                    text = self.ChatGptAPi(prompt)
 
-                # Écriture d'une nouvelle ligne dans le fichier CSV
-                writer.writerow(row)
+                    row = {"Index" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "Index"].iloc[0],
+                    "ICD9-CM" : icd10,"ICD9-CM" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "ICD9-CM"].iloc[0],
+                    "Keys" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "Keys"].iloc[0], 
+                    "ShortDescription" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "ShortDescription"].iloc[0],
+                    "Description" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "Description"].iloc[0],
+                    "Text" : text}
 
-                compt = compt + 1
+                    # Écriture d'une nouvelle ligne dans le fichier CSV
+                    writer.writerow(row)
+
+                    compt = compt + 1
+                
             
             
 
