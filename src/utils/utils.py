@@ -12,6 +12,7 @@ import pprint
 from  tqdm import tqdm
 from configparser import ConfigParser
 import json
+import time
 
 parser = ConfigParser()
 parser.read("./config/config.ini")
@@ -151,6 +152,83 @@ class Utils():
 
         #Load icd_final.csv
         icd_final = pd.read_csv(parser.get("outputFinalPath" , "load"))
+
+        if not os.path.exists(parser.get("outputFinalPath","inProgressFile")):
+            with open(parser.get("outputFinalPath","inProgressFile"), "w", newline="") as file:
+                file.close()
+        
+        if not os.path.exists(os.path.join(parser.get("outputFinalPath" , "path"),"log.json")):
+            with open(os.path.join(parser.get("outputFinalPath" , "path"),"log.json"), 'w') as f:
+                json.dump({},f)
+                # définir la taille du fichier à 0 octet
+            os.truncate(os.path.join(parser.get("outputFinalPath" , "path"),"log.json"), 0)
+  
+        if os.path.getsize(parser.get("outputFinalPath","inProgressFile")) == 0:
+            # Ouverture du fichier en mode 'append' pour ajouter de nouvelles lignes
+            with open(os.path.join(parser.get("outputFinalPath","path"),'icd_datasets.csv'), mode='a', newline='') as file:
+                # Définition des colonnes dans un objet DictWriter
+                writer = csv.DictWriter(file, fieldnames=["Index", "ICD10-CM" , "ICD9-CM", "Keys", "ShortDescription", "Description", "Text"])
+
+                # Écriture de l'en-tête
+                writer.writeheader()
+
+        else : 
+ 
+            if os.path.getsize(os.path.join(parser.get("outputFinalPath" , "path"),"log.json")) == 0:
+                with open(os.path.join(parser.get("outputFinalPath" , "path"),"log.json"), mode='w') as f:
+                    keys = "1"
+                    icd10 = "A00"
+                    data = {f"{keys}" : f"{icd10}"}
+                    # Écrire l'objet JSON dans le fichier
+                    json.dump(data, f)
+                    
+                    # Ajouter un retour à la ligne pour séparer les objets JSON
+                    f.write("\n")
+                    f.close()
+            else:
+                data = [json.loads(line) for line in open(os.path.join(parser.get("outputFinalPath" , "path"),"log.json") , mode ="r")]  
+                cursor = data[-1].values()
+                valeurs = list(cursor) # conversion de la vue en liste
+                valeur = valeurs[0] # accès à la première valeur de la liste
+                # Trouver l'index de l'élément "valeur" dans la colonne "colonne"
+                index = icd_final["ICD10-CM"].index[icd_final["ICD10-CM"] == valeur][0]
+
+                for keys_ , icd10_ in tqdm(icd_final["ICD10-CM"].iloc[index:].iteritems()):
+
+                    compt = 0
+                    des = icd_final.loc[icd_final["ICD10-CM"] == icd10_, "ShortDescription"].iloc[0]+ "," + icd_final.loc[icd_final["ICD10-CM"] == icd10_, "Description"].iloc[0]
+                    prompt = f"ICD10-CM = {icd10_} which has in the context of the international classification of disease codes the description:{des}. Give me a text of a patient who expresses his symptoms that he has related to this type of disease to his doctor in form discussion with his doctor."
+                    
+                    with open(os.path.join(parser.get("outputFinalPath" , "path"),"log.json"), mode='w') as f:
+                        data = {f"{keys_}" : f"{icd10_}"}
+                        # Écrire l'objet JSON dans le fichier
+                        json.dump(data, f)
+                        
+                        # Ajouter un retour à la ligne pour séparer les objets JSON
+                        f.write("\n")
+                        f.close()
+                    
+                    while compt !=5:
+                        text = self.ChatGptAPi(prompt)
+
+                        
+                        row =[icd_final.loc[icd_final["ICD10-CM"] == icd10_, "Index"].iloc[0],icd10_,icd_final.loc[icd_final["ICD10-CM"] == icd10_, "ICD9-CM"].iloc[0]
+                        ,icd_final.loc[icd_final["ICD10-CM"] == icd10_, "Keys"].iloc[0],icd_final.loc[icd_final["ICD10-CM"] == icd10_, "ShortDescription"].iloc[0],
+                       icd_final.loc[icd_final["ICD10-CM"] == icd10_, "Description"].iloc[0], text ]
+                       
+                        # Ouverture du fichier en mode 'append' pour ajouter de nouvelles lignes
+                        with open(os.path.join(parser.get("outputFinalPath","path"),'icd_datasets.csv'), mode='a', newline='') as file1:
+                            writer1 = csv.writer(file1)
+                            # Écriture d'une nouvelle ligne dans le fichier CSV
+                            writer1.writerow(row)
+
+                        compt = compt + 1
+                        time.sleep(60)
+                        
+    def Q2textBeta(self):
+
+        #Load icd_final.csv
+        icd_final = pd.read_csv(parser.get("outputFinalPath" , "load"))
         # Ouverture du fichier en mode 'append' pour ajouter de nouvelles lignes
         with open(os.path.join(parser.get("outputFinalPath","path"),'icd_datasets.csv'), mode='a', newline='') as file:
             #writer = csv.writer(file)
@@ -180,15 +258,6 @@ class Utils():
                     writer.writerow(row)
 
                     compt = compt + 1
-                
-            
-            
-
-
-
-
-                
-        
 
 
 
