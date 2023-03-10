@@ -13,6 +13,7 @@ from  tqdm import tqdm
 from configparser import ConfigParser
 import json
 import time
+import random
 
 parser = ConfigParser()
 parser.read("./config/config.ini")
@@ -208,14 +209,15 @@ class Utils():
                         f.write("\n")
                         f.close()
                     
-                    while compt !=5:
-                        text = self.ChatGptAPi(prompt)
+                    
+                    text = self.ChatGptAPi(prompt , temperature= random.random() * 0.9 + 0.1)
 
                         
-                        row =[icd_final.loc[icd_final["ICD10-CM"] == icd10_, "Index"].iloc[0],icd10_,icd_final.loc[icd_final["ICD10-CM"] == icd10_, "ICD9-CM"].iloc[0]
-                        ,icd_final.loc[icd_final["ICD10-CM"] == icd10_, "Keys"].iloc[0],icd_final.loc[icd_final["ICD10-CM"] == icd10_, "ShortDescription"].iloc[0],
-                       icd_final.loc[icd_final["ICD10-CM"] == icd10_, "Description"].iloc[0], text ]
-                       
+                    row =[icd_final.loc[icd_final["ICD10-CM"] == icd10_, "Index"].iloc[0],icd10_,icd_final.loc[icd_final["ICD10-CM"] == icd10_, "ICD9-CM"].iloc[0]
+                    ,icd_final.loc[icd_final["ICD10-CM"] == icd10_, "Keys"].iloc[0],icd_final.loc[icd_final["ICD10-CM"] == icd10_, "ShortDescription"].iloc[0],
+                    icd_final.loc[icd_final["ICD10-CM"] == icd10_, "Description"].iloc[0], text ]
+                    compt = 0
+                    while compt != 6:
                         # Ouverture du fichier en mode 'append' pour ajouter de nouvelles lignes
                         with open(os.path.join(parser.get("outputFinalPath","path"),'icd_datasets.csv'), mode='a', newline='') as file1:
                             writer1 = csv.writer(file1)
