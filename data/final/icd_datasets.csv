@@ -60610,3 +60610,43 @@ Patient: Okay, thank you for explaining that to me, Doctor. What should I do nex
 Doctor: I'll order some imaging tests for you and we'll schedule a follow-up appointment to discuss the results and any further steps we need to take. In the meantime, try to rest and avoid any strenuous activity that could exacerbate your symptoms.
 
 Patient: Thank you, Doctor. I appreciate your help and advice."
+3117,D271,No equivalence,1,Benign neoplasm of left ovary,Benign neoplasm of left ovary,"
+
+Patient: Hi doctor, I came to see you today because I have been experiencing some symptoms that are concerning me.
+
+Doctor: Sure, please tell me what symptoms you have been experiencing.
+
+Patient: Well, for the past few weeks, I have been having some pain on my left side, specifically in my lower abdomen. The pain is not constant, it comes and goes, but when it comes, it is quite intense.
+
+Doctor: I see. Have you noticed any changes in your menstrual cycle, such as irregular periods, heavier or lighter bleeding, or other abnormalities?
+
+Patient: Yes, now that you mention it, my periods have been a bit irregular lately. They are not as heavy as they used to be, and I've been having some spotting in between periods.
+
+Doctor: Okay, let me examine you to see if I can find anything abnormal. (after the examination) Based on what I see, I would like to perform some tests, including an ultrasound of your ovaries, to see if there is any abnormality.
+
+Patient: Okay, what kind of abnormality could there be?
+
+Doctor: It is possible that you have a benign neoplasm, or tumor, on your left ovary. This can cause pain, irregular periods, and other symptoms that you have been experiencing.
+
+Patient: Oh, that sounds scary. Is it cancerous?
+
+Doctor: No, a benign neoplasm is not cancerous. However, it still needs to be monitored and managed appropriately.
+
+Patient: Okay, what are the treatment options?
+
+Doctor: Depending on the size and location of the tumor, we may need to remove it surgically. However, we will wait for the results of the ultrasound before making any decisions.
+
+Patient: Thank you, doctor. I appreciate your help and guidance."
+3118,D279,No equivalence,1,Benign neoplasm of unspecified ovary,Benign neoplasm of unspecified ovary,"
+
+Patient: Hi Doctor, I have been experiencing some discomfort in my lower abdomen for the past few weeks. It's not exactly painful, but it's a persistent feeling of pressure and bloating. I also feel like my clothes are fitting tighter than usual.
+
+Doctor: Okay, have you noticed any changes in your menstrual cycle or any unusual vaginal bleeding?
+
+Patient: No, everything seems to be normal in that regard.
+
+Doctor: Alright, I'm going to perform a pelvic exam and order some imaging tests to get a better idea of what's going on. It's possible that you may have a benign neoplasm on your ovary, which is a non-cancerous growth. These can sometimes cause the symptoms you're describing.
+
+Patient: Oh, okay. Is there anything I can do to treat it?
+
+Doctor: Depending on the size and location of the growth, we may need to monitor it over time or consider surgical removal. But let's wait until we have more information from the tests before we make any decisions. In the meantime, try to rest and avoid any strenuous activity that could exacerbate your symptoms."
