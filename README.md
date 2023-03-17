@@ -1,4 +1,4 @@
-# audiomixer
+# ICD10 CLASSIFICATION
 
 <p align="center">
     <a href="https://www.python.org/doc/" alt="Python 3.7">

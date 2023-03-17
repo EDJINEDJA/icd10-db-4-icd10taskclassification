@@ -2,18 +2,18 @@
 
 """
 
-#dependencies 
-import requests
+#dependencies
 import csv
 import os
 import pandas as pd
-import openai
-import pprint
 from  tqdm import tqdm
 from configparser import ConfigParser
 import json
 import time
 import random
+
+import openai
+import requests
 
 parser = ConfigParser()
 parser.read("./config/config.ini")
@@ -26,7 +26,7 @@ class Utils():
 
     def __init__(self) -> None:
         pass
-        
+
 
     def __str__(self) -> str:
         return "Utils provides instance to scraped icd10 code is such a way that  for each code their descriptio. The output s in to csv file"
@@ -53,7 +53,7 @@ class Utils():
             yield [field.strip() for field in fields if field.strip()]
 
     def scraper(self):
-        
+
         rows = []
         for item in self.fields():
             if len(item)==0:
@@ -68,8 +68,8 @@ class Utils():
                        index_ = idx #keep the index of the place that it found again current word
                 shortDescription = " ".join(item[3 : 3 + int(index_)+1])
                 description = " ".join(item[3 + int(index_)+1 : ])
-                
-                rows.append([index, icd10code, keys , shortDescription , description ]) #filled in the rows 
+
+                rows.append([index, icd10code, keys , shortDescription , description ]) #filled in the rows
 
         # Write the parsed data to a CSV file with the specified column headers
         with open(os.path.join(parser.get("outputPath","path"),'icd10cm_order_2022.csv'), 'w', newline='') as csvfile:
@@ -95,17 +95,17 @@ class Utils():
         correspondanceicd92icd10 = pd.read_csv(os.path.join(parser.get("outputPath","path"),'icd9icd10.csv'))
         icd10cm_order_2022 = pd.read_csv(os.path.join(parser.get("outputPath","path"),'icd10cm_order_2022.csv'))
         ICD9_CM = []
-   
+
         for keys , values in icd10cm_order_2022["icd10code"].iteritems():
             # supposons que le dataframe s'appelle `correspondance_df`
             # et que les colonnes contenant les codes ICD-9 et ICD-10 s'appellent respectivement `icd9` et `icd10`
-      
+
             code_icd10_recherche = values
-            try: 
+            try:
                 valeur_icd9_correspondante = correspondanceicd92icd10.loc[correspondanceicd92icd10["ICD10-CM"] == str(code_icd10_recherche.strip()), "ICD9-CM"].iloc[0]
-                ICD9_CM.append(valeur_icd9_correspondante) 
+                ICD9_CM.append(valeur_icd9_correspondante)
             except IndexError:
-                ICD9_CM.append('No equivalence') 
+                ICD9_CM.append('No equivalence')
 
         icd10cm_order_2022["icd9code"]=ICD9_CM
 
@@ -133,16 +133,17 @@ class Utils():
         )
 
         return response
-        
+
     def ChatGptAPi(self , content , temperature = 0):
         # Set OpenAI API key
         openai.api_key = api_key["api-keys"]
-   
+
         # Set up the OpenAI model
         model_engine = "gpt-3.5-turbo"
+        #model_engine = "gpt-4"
         model_prompt = [{"role" : "system" ,"content" : f"{content}"
                         }] # Change the question prompt as needed
-  
+
         # Generate response using the defined function
         response = self.generate_response(model_prompt, model_engine, temperature)
 
@@ -157,13 +158,13 @@ class Utils():
         if not os.path.exists(parser.get("outputFinalPath","inProgressFile")):
             with open(parser.get("outputFinalPath","inProgressFile"), "w", newline="") as file:
                 file.close()
-        
+
         if not os.path.exists(os.path.join(parser.get("outputFinalPath" , "path"),"log.json")):
             with open(os.path.join(parser.get("outputFinalPath" , "path"),"log.json"), 'w') as f:
                 json.dump({},f)
                 # définir la taille du fichier à 0 octet
             os.truncate(os.path.join(parser.get("outputFinalPath" , "path"),"log.json"), 0)
-  
+
         if os.path.getsize(parser.get("outputFinalPath","inProgressFile")) == 0:
             # Ouverture du fichier en mode 'append' pour ajouter de nouvelles lignes
             with open(os.path.join(parser.get("outputFinalPath","path"),'icd_datasets.csv'), mode='a', newline='') as file:
@@ -173,8 +174,8 @@ class Utils():
                 # Écriture de l'en-tête
                 writer.writeheader()
 
-        else : 
- 
+        else :
+
             if os.path.getsize(os.path.join(parser.get("outputFinalPath" , "path"),"log.json")) == 0:
                 with open(os.path.join(parser.get("outputFinalPath" , "path"),"log.json"), mode='w') as f:
                     keys = "1"
@@ -182,12 +183,12 @@ class Utils():
                     data = {f"{keys}" : f"{icd10}"}
                     # Écrire l'objet JSON dans le fichier
                     json.dump(data, f)
-                    
+
                     # Ajouter un retour à la ligne pour séparer les objets JSON
                     f.write("\n")
                     f.close()
             else:
-                data = [json.loads(line) for line in open(os.path.join(parser.get("outputFinalPath" , "path"),"log.json") , mode ="r")]  
+                data = [json.loads(line) for line in open(os.path.join(parser.get("outputFinalPath" , "path"),"log.json") , mode ="r")]
                 cursor = data[-1].values()
                 valeurs = list(cursor) # conversion de la vue en liste
                 valeur = valeurs[0] # accès à la première valeur de la liste
@@ -199,34 +200,25 @@ class Utils():
                     compt = 0
                     des = icd_final.loc[icd_final["ICD10-CM"] == icd10_, "ShortDescription"].iloc[0]+ "," + icd_final.loc[icd_final["ICD10-CM"] == icd10_, "Description"].iloc[0]
                     prompt = f"ICD10-CM = {icd10_} which has in the context of the international classification of disease codes the description:{des}. Give me a text of a patient who expresses his symptoms that he has related to this type of disease to his doctor in form discussion with his doctor."
-                    
                     with open(os.path.join(parser.get("outputFinalPath" , "path"),"log.json"), mode='w') as f:
                         data = {f"{keys_}" : f"{icd10_}"}
                         # Écrire l'objet JSON dans le fichier
                         json.dump(data, f)
-                        
                         # Ajouter un retour à la ligne pour séparer les objets JSON
                         f.write("\n")
                         f.close()
-                    
-                    
                     text = self.ChatGptAPi(prompt , temperature= random.random() * 0.9 + 0.1)
 
-                        
                     row =[icd_final.loc[icd_final["ICD10-CM"] == icd10_, "Index"].iloc[0],icd10_,icd_final.loc[icd_final["ICD10-CM"] == icd10_, "ICD9-CM"].iloc[0]
                     ,icd_final.loc[icd_final["ICD10-CM"] == icd10_, "Keys"].iloc[0],icd_final.loc[icd_final["ICD10-CM"] == icd10_, "ShortDescription"].iloc[0],
                     icd_final.loc[icd_final["ICD10-CM"] == icd10_, "Description"].iloc[0], text ]
-                    compt = 0
-                    while compt != 6:
-                        # Ouverture du fichier en mode 'append' pour ajouter de nouvelles lignes
-                        with open(os.path.join(parser.get("outputFinalPath","path"),'icd_datasets.csv'), mode='a', newline='') as file1:
-                            writer1 = csv.writer(file1)
-                            # Écriture d'une nouvelle ligne dans le fichier CSV
-                            writer1.writerow(row)
+                    # Ouverture du fichier en mode 'append' pour ajouter de nouvelles lignes
+                    with open(os.path.join(parser.get("outputFinalPath","path"),'icd_datasets.csv'), mode='a', newline='') as file1:
+                        writer1 = csv.writer(file1)
+                        # Écriture d'une nouvelle ligne dans le fichier CSV
+                        writer1.writerow(row)
+                    time.sleep(60)
 
-                        compt = compt + 1
-                        time.sleep(60)
-                        
     def Q2textBeta(self):
 
         #Load icd_final.csv
@@ -239,19 +231,19 @@ class Utils():
 
             # Écriture de l'en-tête
             writer.writeheader()
-            
 
             for keys , icd10 in tqdm(icd_final["ICD10-CM"].iteritems()):
                 compt = 0
                 des = icd_final.loc[icd_final["ICD10-CM"] == icd10, "ShortDescription"].iloc[0]+ "," + icd_final.loc[icd_final["ICD10-CM"] == icd10, "Description"].iloc[0]
-                prompt = f"ICD10-CM = {icd10} which has in the context of the international classification of disease codes the description:{des}. Give me a text of a patient who expresses his symptoms that he has related to this type of disease to his doctor in form discussion with his doctor."
+                #prompt = f"ICD10-CM = {icd10} which has in the context of the international classification of disease codes the description:{des}. Give me a text translate in french of a patient who expresses his symptoms that he has related to this type of disease to his doctor in form discussion with his doctor."
+                prompt = "The ICD-10, which is the international classification of diseases published by the WHO, describes the: {des} with the code = {icd10}. Please simulate a discussion between a doctor and a patient explaining the symptoms related to this type of disease as an emergency call, without mentioning the diagnosis found by the doctor and the disease in the anonymized text."
                 while compt !=5:
                     text = self.ChatGptAPi(prompt)
 
                     row = {"Index" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "Index"].iloc[0],
                     "ICD10-CM" : icd10,
                     "ICD9-CM" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "ICD9-CM"].iloc[0],
-                    "Keys" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "Keys"].iloc[0], 
+                    "Keys" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "Keys"].iloc[0],
                     "ShortDescription" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "ShortDescription"].iloc[0],
                     "Description" : icd_final.loc[icd_final["ICD10-CM"] == icd10, "Description"].iloc[0],
                     "Text" : text}
@@ -267,12 +259,12 @@ class Utils():
 
 
 
-   
 
 
 
-    
 
-    
 
-    
+
+
+
+
